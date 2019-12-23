@@ -219,12 +219,55 @@ def draw_grid(surface, grid):
                              (sx + j*block_size, sy), (sx + j * block_size, sy+play_height))
 
 
-def clear_rows(grid, locked):
-    pass
+def clear_rows(grid, locked_positions):
+
+    inc = 0
+    # loops throught the grid backwards
+    for i in range(len(grid)-1, -1, -1):
+        row = grid[i]  # setting row to every row in the grid
+        if (0, 0, 0) not in row:  # if no black square in row i.e the row has not empty squares
+            inc += 1
+            ind = i
+            # now we loop through the cols of that row and try to delete every col from the locked_positions
+            for j in range(len(row)):
+                try:
+                    del locked_positions[(j, i)]
+                except:
+                    continue
+
+    # now we need to shift every row i,e if we delete a bottom row every row above needs to come down by one
+    # but in our case we are removing an entire row from the grid so we need to add a new row at the top of the grid
+
+    # given a list like [(0,1), (0,0)] ->[(0,0), (0,1)]to get all the positons that have the same y value in the correct order
+    if inc > 0:
+        # for every key in our sorted list of locked position based on the y value
+        for key in sorted(list(locked_positions), key=lambda x: x[1])[::-1]:
+            x, y = key  # getting x,y of each key in lockec_positions
+            if y < ind:  # if y value of the key is above the current index of the row we removed
+                newKey = (x, y+inc)  # adding the the y valueto shift it down
+                locked_positions[newKey] = locked_positions.pop(key)
 
 
 def draw_next_shape(shape, surface):
-    pass
+    # draws the next shape to come
+    font = pygame.font.SysFont('comicsans', 30)
+    label = font.render('Next Shape', 1, (255, 255, 255))
+
+    # Now to set position for the label
+    sx = top_left_x + play_width+40
+    sy = top_left_y + play_height//2 - 100
+
+    # fetching the shape to draw
+    format = shape.shape[shape.rotation % len(shape.shape)]
+
+    for i, line in enumerate(format):
+        row = list(line)
+        for j, column in enumerate(row):
+            if column == '0':  # if its the shape then draw
+                pygame.draw.rect(surface, shape.color, (sx+j*block_size,
+                                                        sy+i*block_size, block_size, block_size), 0)
+
+    surface.blit(label, (sx+10, sy-30))
 
 
 def draw_window(surface, grid):
@@ -322,8 +365,12 @@ def main(win):
             current_piece = next_piece
             next_piece = get_shape()   # get a new shape
             change_piece = False  # since now we have a new shape so change_piece = False
+            # checking for clear row very time a block hits the ground
+            clear_rows(grid, locked_positions)
 
         draw_window(win, grid)
+        draw_next_shape(next_piece, win)
+        pygame.display.update()
 
         # check is we have lost the game
         if check_lost(locked_positions):
