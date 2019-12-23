@@ -169,7 +169,20 @@ def convert_shape_format(shape):
 
 
 def valid_space(shape, grid):
-    pass
+    # check the gird to see if we are moving in valid space and grid[i][j] == (0, 0, 0) i.e adding this position in valid postion only if its empty
+    valid_pos = [[(j, i) for j in range(len(grid[i])) if grid[i][j] == (0, 0, 0)]
+                 for i in range(len(grid))]
+    # from [[(0,1), [(2,3)]]] => [(0,1),(2,3)] it flatens the list from list in list to a single list of coords
+    valid_pos = [j for sub in valid_pos for j in sub]
+
+    # coverting shapes to positions from  2d to 1d  from list in list to a single list of coords
+    formatted_shape = convert_shape_format(shape)
+
+    for pos in formatted_shape:
+        if pos not in valid_pos:  # first checking if the shape is the valid grid position
+            if pos[1] > -1:       # if not then check weather the shape is still in falling phase above the grid
+                return False      # if not return False since shape is not in a valid position
+    return True
 
 
 def check_lost(positions):
