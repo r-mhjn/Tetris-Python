@@ -202,8 +202,12 @@ def get_shape():
     return Piece(5, 0, random.choice(shapes))
 
 
-def draw_text_middle(text, size, color, surface):
-    pass
+def draw_text_middle(surface, text, size, color):
+    font = pygame.font.SysFont('comicsans', size, bold=True)
+    label = font.render(text, 1, color)
+
+    surface.blit(label, (top_left_x + play_width / 2 - (label.get_width()/2),
+                         top_left_y + play_height/2 - label.get_height()/2))
 
 
 def draw_grid(surface, grid):
@@ -247,6 +251,8 @@ def clear_rows(grid, locked_positions):
                 newKey = (x, y+inc)  # adding the the y valueto shift it down
                 locked_positions[newKey] = locked_positions.pop(key)
 
+    return inc
+
 
 def draw_next_shape(shape, surface):
     # draws the next shape to come
@@ -254,7 +260,7 @@ def draw_next_shape(shape, surface):
     label = font.render('Next Shape', 1, (255, 255, 255))
 
     # Now to set position for the label
-    sx = top_left_x + play_width+40
+    sx = top_left_x + play_width+60
     sy = top_left_y + play_height//2 - 100
 
     # fetching the shape to draw
@@ -270,7 +276,7 @@ def draw_next_shape(shape, surface):
     surface.blit(label, (sx+10, sy-30))
 
 
-def draw_window(surface, grid):
+def draw_window(surface, grid, score=0, last_score=0):
     surface.fill((0, 0, 0))   # filling the sureface with black color
 
     pygame.font.init()
@@ -280,6 +286,21 @@ def draw_window(surface, grid):
 
     # where we want to place the label (in the middle of the screen, positioning in x,y)
     surface.blit(label, (top_left_x+play_width//2-(label.get_width()//2), 30))
+
+    # setting up current score label
+    font = pygame.font.SysFont('comicsans', 30)
+    label = font.render('Score: '+str(score), 1, (255, 255, 255))
+    # Now to set position for score
+    sx = top_left_x + play_width+60
+    sy = top_left_y + play_height//2 - 100
+    surface.blit(label, (sx+20, sy+160))
+
+    # setting up maxscore label
+    label = font.render('High Score: '+str(last_score), 1, (255, 255, 255))
+    # Now to set position for maxscore
+    sx = top_left_x - 200
+    sy = top_left_y + 200
+    surface.blit(label, (sx+20, sy+160))
 
     # draws shape
     for i in range(len(grid)):
@@ -296,8 +317,26 @@ def draw_window(surface, grid):
     pygame.display.update()
 
 
-def main(win):
+def update_score(new_score):
+    score = max_score()
 
+    with open('score.txt', 'w') as f:
+        if int(score) > new_score:
+            f.write(str(score))
+        else:
+            f.write(str(new_score))
+
+
+def max_score():
+    with open('score.txt', 'r') as f:
+        lines = f.readlines()
+        score = lines[0].strip()  # to remove \n
+
+    return score
+
+
+def main(win):
+    last_score = max_score()
     locked_positions = {}
     grid = create_grid(locked_positions)
 
@@ -319,6 +358,11 @@ def main(win):
         fall_time += clock.get_rawtime()
         level_time += clock.get_rawtime()
         clock.tick()
+
+        if level_time/1000 > 5:
+            level_time = 0
+            if fall_speed > 0.12:
+                fall_speed -= 0.005
 
         if fall_time / 1000 > fall_speed:
             fall_time = 0
@@ -366,22 +410,38 @@ def main(win):
             next_piece = get_shape()   # get a new shape
             change_piece = False  # since now we have a new shape so change_piece = False
             # checking for clear row very time a block hits the ground
-            clear_rows(grid, locked_positions)
+        score += clear_rows(grid, locked_positions)*10
 
-        draw_window(win, grid)
+        draw_window(win, grid, score, last_score)
         draw_next_shape(next_piece, win)
         pygame.display.update()
 
         # check is we have lost the game
         if check_lost(locked_positions):
+            draw_text_middle(win, "You Lost!!!", 80, (255, 255, 255))
+            pygame.display.update()
+            pygame.time.delay(1500)
             run = False
-
-    pygame.display.quit()
+            update_score(score)
 
 
 def main_menu(win):
+
+    run = True
+
+    while run:
+        win.fill((0, 0, 0))
+        draw_text_middle(win, "Press any key to play", 60, (255, 255, 255))
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:     # if person hits exit then we quit the game
+                run = False
+            if event.type == pygame.KEYDOWN:  # if person hits any other key we start the game loop
+                main(win)
+
+    pygame.display.quit()
+
     main(win)
-    pass
 
 
 win = pygame.display.set_mode((screen_width, screen_height))
