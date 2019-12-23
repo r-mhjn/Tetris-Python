@@ -257,10 +257,26 @@ def main(win):
     change_piece = False
     run = True
     current_piece = get_shape()
+    next_piece = get_shape()
     clock = pygame.time.Clock()
     fall_time = 0
+    fall_speed = 0.27
 
     while run:
+        # updating grid every time we move
+        grid = create_grid(locked_positions)
+        # it gets the amount of time since last clock.tick()
+        fall_time += clock.get_rawtime()
+        clock.tick()
+
+        if fall_time / 1000 > fall_speed:
+            fall_time = 0
+            current_piece.y += 1
+            if not (valid_space(current_piece, grid)) and current_piece.y > 0:
+                current_piece.y -= 1  # if we move into a valid position by above action then revert
+                # its going to lock the the shape piece and make another shape come down the screen
+                change_piece = True
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -282,7 +298,29 @@ def main(win):
                     if not (valid_space(current_piece, grid)):
                         current_piece.rotation -= 1
 
+        # to check all the positions of the shape to check if we have hit the ground or to see if we have to lock it
+        shape_pos = convert_shape_format(current_piece)
+        for i in range(len(shape_pos)):
+            x, y = shape_pos
+            if y > -1:  # if the shape is not above the screen the we give the shape a color
+                grid[y][x] = current_piece.color
+
+        if change_piece:
+            for pos in shape_pos:
+                p = (pos[0], pos[1])
+                # when we pass locked postions in grid we get each of those positions and then update the color of grid
+                locked_positions[p] = current_piece.color
+            current_piece = next_piece
+            next_piece = get_shape()   # get a new shape
+            change_piece = False  # since now we have a new shape so change_piece = False
+
         draw_window(win, grid)
+
+        # check is we have lost the game
+        if check_lost(locked_positions):
+            run = False
+
+    pygame.display.quir()
 
 
 def main_menu():
