@@ -151,7 +151,21 @@ def create_grid(locked_positions={}):
 
 def convert_shape_format(shape):
     positions = []
+    # goes into the shape array of shapes and we mod the rotation of a shape with max shapes of that shape
     format = shape.shape[shape.rotation % len(shape.shape)]
+
+    # Enumerate method adds a counter to anniteratable and returns it in a form of enumerate object.
+    # This enumerate object can then be used direclty in for loops of be converted into a list of tuples using list() method, Ex: line and pos in below loops
+    for i, line in enumerate(format):
+        row = list(line)
+        for j, column in enumerate(row):
+            if column == '0':   # if its 0 then append the current col, row + next col and row to the positions
+                # current x and y value + the trailing periods j,i dimensiosn
+                positions.append((shape.x+j, shape.y + i))
+
+    # setting the offset  of the shape to a little left and up
+    for i, pos in enumerate(positions):
+        positions[i]-(pos[0]-2, pos[i]-4)
 
 
 def valid_space(shape, grid):
