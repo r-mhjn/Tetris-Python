@@ -179,14 +179,19 @@ def valid_space(shape, grid):
     formatted_shape = convert_shape_format(shape)
 
     for pos in formatted_shape:
-        if pos not in valid_pos:  # first checking if the shape is the valid grid position
+        if pos not in valid_pos:   # first checking if the shape is the valid grid position
             if pos[1] > -1:       # if not then check weather the shape is still in falling phase above the grid
                 return False      # if not return False since shape is not in a valid position
     return True
 
 
 def check_lost(positions):
-    pass
+    for pos in positions:
+        x, y = pos
+        if y < 1:    # i.e there is a shape that is going above the grid
+            return True   # therefore lost
+
+    return False
 
 
 # getting a new shape falling down the screen
