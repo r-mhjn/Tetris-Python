@@ -206,8 +206,8 @@ def draw_text_middle(surface, text, size, color):
     font = pygame.font.SysFont('comicsans', size, bold=True)
     label = font.render(text, 1, color)
 
-    surface.blit(label, (top_left_x + play_width / 2 - (label.get_width()/2),
-                         top_left_y + play_height/2 - label.get_height()/2))
+    surface.blit(label, (top_left_x + play_width // 2 - int(label.get_width()//2),
+                         top_left_y + play_height//2 - label.get_height()//2))
 
 
 def draw_grid(surface, grid):
@@ -277,15 +277,10 @@ def draw_next_shape(shape, surface):
 
 
 def draw_window(surface, grid, score=0, last_score=0):
-    surface.fill((0, 0, 0))   # filling the sureface with black color
+    surface.fill((0, 0, 0))   # filling the surface with black color
 
     pygame.font.init()
     font = pygame.font.SysFont('comicsans', 60)  # fontname and fontsize
-    # Text, anti-alises, color
-    label = font.render('Tetris', 1, (255, 255, 255))
-
-    # where we want to place the label (in the middle of the screen, positioning in x,y)
-    surface.blit(label, (top_left_x+play_width//2-(label.get_width()//2), 30))
 
     # setting up current score label
     font = pygame.font.SysFont('comicsans', 30)
@@ -320,7 +315,7 @@ def draw_window(surface, grid, score=0, last_score=0):
 def update_score(new_score):
     score = max_score()
 
-    with open('score.txt', 'w') as f:
+    with open('scores.txt', 'w') as f:
         if int(score) > new_score:
             f.write(str(score))
         else:
@@ -328,7 +323,7 @@ def update_score(new_score):
 
 
 def max_score():
-    with open('score.txt', 'r') as f:
+    with open('scores.txt', 'r') as f:
         lines = f.readlines()
         score = lines[0].strip()  # to remove \n
 
@@ -349,7 +344,7 @@ def main(win):
     fall_speed = 0.27
     level_time = 0
     score = 0
-    # last_score = max_score()
+    last_score = max_score()
 
     while run:
         # updating grid every time we move
@@ -372,6 +367,7 @@ def main(win):
                 # its going to lock the the shape piece and make another shape come down the screen
                 change_piece = True
 
+        pygame.init()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -428,7 +424,7 @@ def main(win):
 def main_menu(win):
 
     run = True
-
+    pygame.init()
     while run:
         win.fill((0, 0, 0))
         draw_text_middle(win, "Press any key to play", 60, (255, 255, 255))
