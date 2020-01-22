@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
 import pygame
 import random
+import time
 
 pygame.font.init()
 
@@ -330,6 +332,19 @@ def max_score():
     return score
 
 
+def pause_game(surface):
+    pygame.font.init()
+    font = pygame.font.SysFont('comicsans', 60)  # fontname and fontsize
+
+    # setting up current score label
+    font = pygame.font.SysFont('comicsans', 30)
+    label = font.render("Paused", 1, (255, 255, 255))
+    # Now to set position for score
+    sx = top_left_x + play_width+60
+    sy = top_left_y + play_height//2 - 100
+    surface.blit(label, (sx+20, sy+80))
+
+
 def main(win):
     last_score = max_score()
     locked_positions = {}
@@ -389,6 +404,8 @@ def main(win):
                     current_piece.rotation += 1
                     if not (valid_space(current_piece, grid)):
                         current_piece.rotation -= 1
+                elif event.key == pygame.K_SPACE:
+                    pause_game(win)
 
         # to check all the positions of the shape to check if we have hit the ground or to see if we have to lock it
         shape_pos = convert_shape_format(current_piece)
@@ -440,6 +457,8 @@ def main_menu(win):
     main(win)
 
 
+icon = pygame.image.load('tetris_icon.png')
+pygame.display.set_icon(icon)
 win = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Tetris')
 main_menu(win)  # start game
